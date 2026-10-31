@@ -23,5 +23,5 @@ Acquiring new subscribers is 5x to 7x more costly than retaining existing ones. 
 ## 💻 Local Setup & Execution
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/VedantK709/Project-practical.git](https://github.com/VedantK709/Project-practical.git)
+   git clone (https://github.com/VedantK709/Project-practical.git)
    cd Project-practical
