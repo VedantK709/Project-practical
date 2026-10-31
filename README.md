@@ -3,7 +3,7 @@
 An end-to-end predictive machine learning solution designed to identify telecom/SaaS customer attrition risk and recommend targeted retention actions before churn occurs.
 
 ## 🚀 Live Web Demo
-**Live Application:** [Open Streamlit App]()
+**Live Application:** [Open Streamlit App](https://project-practical-vedantkhete-2023bcs024.streamlit.app/)
 
 ## 📌 Problem Overview
 Acquiring new subscribers is 5x to 7x more costly than retaining existing ones. This system analyzes subscriber tenure, billing dynamics, service contracts, and support subscriptions to output real-time churn probabilities and actionable retention steps.
