@@ -8,50 +8,68 @@ from sklearn.model_selection import train_test_split
 
 def generate_and_train():
     np.random.seed(42)
-    n_samples = 3000
+    n_samples = 4000
 
-    tenure = np.random.randint(1, 72, size=n_samples)
-    monthly_charges = np.random.uniform(20.0, 120.0, size=n_samples)
-    contract_type = np.random.choice(
-        [0, 1, 2], size=n_samples, p=[0.55, 0.25, 0.20]
-    )  # 0: Month-to-month, 1: One year, 2: Two year
-    tech_support = np.random.choice([0, 1], size=n_samples, p=[0.65, 0.35])
-    online_security = np.random.choice([0, 1], size=n_samples, p=[0.60, 0.40])
-    paperless_billing = np.random.choice([0, 1], size=n_samples, p=[0.40, 0.60])
+    # 1. Expanded tenure (3 to 60 months)
+    tenure = np.random.randint(3, 61, size=n_samples)
 
-    # Realistic churn probability logic: high charges + month-to-month = higher churn risk
+    # 2. Expanded monthly charges (₹150 to ₹50,000)
+    monthly_charges = np.random.uniform(150.0, 50000.0, size=n_samples)
+
+    # 3. Contract commitment in months (1, 3, 6, 12, 24, 36, etc.)
+    contract_months = np.random.choice(
+        [1, 3, 6, 12, 24], size=n_samples, p=[0.40, 0.20, 0.15, 0.15, 0.10]
+    )
+
+    # 4. Five distinct service/variety fields
+    tech_support = np.random.choice([0, 1], size=n_samples, p=[0.60, 0.40])
+    online_security = np.random.choice([0, 1], size=n_samples, p=[0.55, 0.45])
+    device_protection = np.random.choice(
+        [0, 1], size=n_samples, p=[0.65, 0.35]
+    )
+    streaming_bundle = np.random.choice([0, 1], size=n_samples, p=[0.50, 0.50])
+    paperless_billing = np.random.choice([0, 1], size=n_samples, p=[0.35, 0.65])
+
+    # Calibrated risk logit across 8 dimensions
     logit = (
-        -1.5
-        + (monthly_charges * 0.025)
-        - (tenure * 0.045)
-        - (contract_type * 1.1)
-        - (tech_support * 0.7)
-        - (online_security * 0.6)
-        + (paperless_billing * 0.4)
+        -0.85
+        + (monthly_charges * 0.000075)
+        - (tenure * 0.035)
+        - (contract_months * 0.075)
+        - (tech_support * 0.55)
+        - (online_security * 0.45)
+        - (device_protection * 0.35)
+        - (streaming_bundle * 0.30)
+        + (paperless_billing * 0.30)
     )
     prob = 1 / (1 + np.exp(-logit))
     churn = (np.random.uniform(0, 1, size=n_samples) < prob).astype(int)
+
+    feature_cols = [
+        "tenure",
+        "monthly_charges",
+        "contract_months",
+        "tech_support",
+        "online_security",
+        "device_protection",
+        "streaming_bundle",
+        "paperless_billing",
+    ]
 
     df = pd.DataFrame(
         {
             "tenure": tenure,
             "monthly_charges": monthly_charges,
-            "contract_type": contract_type,
+            "contract_months": contract_months,
             "tech_support": tech_support,
             "online_security": online_security,
+            "device_protection": device_protection,
+            "streaming_bundle": streaming_bundle,
             "paperless_billing": paperless_billing,
             "churn": churn,
         }
     )
 
-    feature_cols = [
-        "tenure",
-        "monthly_charges",
-        "contract_type",
-        "tech_support",
-        "online_security",
-        "paperless_billing",
-    ]
     X = df[feature_cols]
     y = df["churn"]
 
@@ -60,26 +78,28 @@ def generate_and_train():
     )
 
     model = RandomForestClassifier(
-        n_estimators=120, max_depth=6, random_state=42
+        n_estimators=120, max_depth=7, random_state=42
     )
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
 
-    print("=== Model Training Evaluation ===")
-    print(f"Accuracy:  {accuracy_score(y_test, y_pred):.4f}")
-    print(f"ROC-AUC:   {roc_auc_score(y_test, y_prob):.4f}")
-    print("\nClassification Report:\n", classification_report(y_test, y_pred))
+    acc = float(accuracy_score(y_test, y_pred))
+    auc = float(roc_auc_score(y_test, y_prob))
+
+    print(
+        f"Model successfully retrained on 8 features. Accuracy: {acc:.4f}, ROC-AUC: {auc:.4f}"
+    )
 
     artifact = {
         "model": model,
         "features": feature_cols,
-        "accuracy": float(accuracy_score(y_test, y_pred)),
-        "roc_auc": float(roc_auc_score(y_test, y_prob)),
+        "accuracy": acc,
+        "roc_auc": auc,
     }
     joblib.dump(artifact, "churn_model.joblib")
-    print("Model artifact successfully saved as 'churn_model.joblib'")
+    print("Saved updated artifact: 'churn_model.joblib'")
 
 
 if __name__ == "__main__":
